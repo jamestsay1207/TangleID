@@ -3,7 +3,7 @@ import withRedux from 'next-redux-wrapper'
 import configureStore from '../../store/configureStore'
 import fetchKeyPairs from '../../actions/fetchKeyPairs'
 import createNewIdentity from '../../actions/createIdentity'
-import updateAccountStore from '../../actions/updateAccountStore'
+import updateLocalAccount from '../../actions/updateLocalAccount'
 //import Layout from '../../layouts/Main'
 import Layout from '../../layouts/material/Main'
 import NewUserForm from '../../components/NewUserForm'
@@ -19,17 +19,15 @@ const gen_uuid = () => {
 }
 
 const NewUserPage = (props) => {
-	const { keyPairs, isLoading, isRegister, createNewIdentity, updateAccountStore } = props
+	const { keyPairs, isLoading, isRegister, createNewIdentity, updateLocalAccount } = props
 	const { sk, skImg, pk, pkImg, } = keyPairs
 	const uuid = gen_uuid()
 	const handleSubmit = (values) => {
-		const params = Object.assign({ sk, pk, uuid }, values)
-		localStorage.setItem('latestId', JSON.stringify(params))
-		createNewIdentity(params)
-          var store = {}
-          store['data'] = { claim: values, id: uuid, sk, pk }
-          updateAccountStore(store)
-    }
+          const params = Object.assign({ sk, pk, uuid }, values)
+          createNewIdentity(params)
+          var account = { claim: values, id: uuid, sk, pk }
+          updateLocalAccount(account)
+        }
 	return (
 		<Layout>
             { isRegister
@@ -54,7 +52,7 @@ NewUserPage.getInitialProps = async (context) => {
 const mapDispatchToProps = (dispatch) => {
 	return {
 		createNewIdentity: bindActionCreators(createNewIdentity, dispatch),
-    updateAccountStore: bindActionCreators(updateAccountStore, dispatch),
+    updateLocalAccount: bindActionCreators(updateLocalAccount, dispatch),
 	}
 }
 

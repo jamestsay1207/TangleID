@@ -1,14 +1,14 @@
 var loki = require("lokijs")
 
-class accountStore {
+class contactStore {
   constructor(dbFileName, callback){
     var self = this
     // implement the autoloadback referenced in loki constructor
 
     var databaseInitialize = function() {
-      self.accounts = self.db.getCollection("accounts");
-      if ( self.accounts === null) {
-        self.accounts = self.db.addCollection("accounts");
+      self.contacts = self.db.getCollection("contacts");
+      if ( self.contacts === null) {
+        self.contacts = self.db.addCollection("contacts");
       }
       callback()
     }
@@ -22,38 +22,39 @@ class accountStore {
 
   }
   insert(params) {
-    var result = this.accounts.insert(params)
+    var result = this.contacts.insert(params)
     this.db.saveDatabase()
     return result
   }
 
   update(params) {
-    var result = this.accounts.update(params)
+    var result = this.contacts.update(params)
     this.db.saveDatabase()
     return result
   }
 
   find(query) {
-    return this.accounts.find(query)
+    return this.contacts.find(query)
   }
 
   findOnly(query) {
-    var result = this.accounts.find(query)
+    var result = this.contacts.find(query)
 
     if(result.length !== 1) {
-      console.log('[Error] more/less than one accounts are found:', result.length)
+      console.log('[Error] more/less than one contacts are found:', result.length)
       return undefined
     }
 
     return result[0]
   }
+
   all() {
-    return this.accounts.find({})
+    return this.contacts.find({})
   }
 
   remove(object) {
-    return this.accounts.remove(object)
+    return this.contacts.remove(object)
   }
 }
 
-module.exports = accountStore
+module.exports = contactStore
