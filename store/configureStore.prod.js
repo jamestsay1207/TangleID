@@ -3,9 +3,9 @@ import api from '../middlewares/api'
 import rootReducer from '../reducers'
 
 const configureStore = preloadedState => createStore(
-	rootReducer,
-	preloadedState,
-	applyMiddleware(api)
+    rootReducer,
+    preloadedState,
+    applyMiddleware(api)
 )
 
 export default configureStore

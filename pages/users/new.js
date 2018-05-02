@@ -11,58 +11,58 @@ import LoginDialog from '../../components/LoginDialog'
 import Grid from 'material-ui/Grid'
 
 const gen_uuid = () => {
-    const validChar = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9"
-    var ret = ""
+    const validChar = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ9'
+    var ret = ''
     for (var i = 0; i < 26; ++i)
         ret = ret.concat(validChar[Math.floor(Math.random() * 27)])
     return ret
 }
 
 const NewUserPage = (props) => {
-	const { keyPairs, isLoading, isRegister, createNewIdentity, updateLocalAccount } = props
-	const { sk, skImg, pk, pkImg, } = keyPairs
-	const uuid = gen_uuid()
-	const handleSubmit = (values) => {
-          const params = Object.assign({ sk, pk, uuid }, values)
-          createNewIdentity(params)
-          var account = { claim: values, id: uuid, sk, pk }
-          updateLocalAccount(account)
-        }
-	return (
-		<Layout>
+    const { keyPairs, isLoading, isRegister, createNewIdentity, updateLocalAccount } = props
+    const { sk, skImg, pk, pkImg, } = keyPairs
+    const uuid = gen_uuid()
+    const handleSubmit = (values) => {
+        const params = Object.assign({ sk, pk, uuid }, values)
+        createNewIdentity(params)
+        var account = { claim: values, id: uuid, sk, pk }
+        updateLocalAccount(account)
+    }
+    return (
+        <Layout>
             { isRegister
                 ? <LoginDialog open="true" />
                 : <div style={{display: 'flex', justifyContent: 'center'}}>
-                      <NewUserForm
-                          keyPairs={keyPairs}
-                          uuid={uuid}
-                          handleSubmit={handleSubmit} />
-                   </div>
-             }
-		</Layout>
-	)
+                    <NewUserForm
+                        keyPairs={keyPairs}
+                        uuid={uuid}
+                        handleSubmit={handleSubmit} />
+                </div>
+            }
+        </Layout>
+    )
 }
 
 NewUserPage.getInitialProps = async (context) => {
-	const { store, isServer } = context
-	await store.dispatch(fetchKeyPairs())
-	return { isServer }
+    const { store, isServer } = context
+    await store.dispatch(fetchKeyPairs())
+    return { isServer }
 }
 
 const mapDispatchToProps = (dispatch) => {
-	return {
-		createNewIdentity: bindActionCreators(createNewIdentity, dispatch),
-    updateLocalAccount: bindActionCreators(updateLocalAccount, dispatch),
-	}
+    return {
+        createNewIdentity: bindActionCreators(createNewIdentity, dispatch),
+        updateLocalAccount: bindActionCreators(updateLocalAccount, dispatch),
+    }
 }
 
 const mapStateToProps = (state) => {
-	const { keyPairs, isLoading, isRegister } = state.users
-	return {
-		isLoading,
-		keyPairs,
+    const { keyPairs, isLoading, isRegister } = state.users
+    return {
+        isLoading,
+        keyPairs,
         isRegister,
-	}
+    }
 }
 
 
