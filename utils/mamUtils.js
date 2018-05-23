@@ -40,8 +40,46 @@ class mam {
 
         var mamState = await this.getActiveMamState(params)
         await this.sendMamMsg(packet, params, mamState)
+
+        var bkState = await this.getBackupMamState(params)
+        await this.backupMamMsg(packet, params, bkState)
+
         this.messageUpdate(packet, params)
     }
+
+    async getBackupMamState(params) {
+
+        var store = this.contactStore.findOnly({id: params.sender})
+
+        return deepCopy(store.contacts[params.receiver].backupMamState)
+    }
+
+
+    async recoverMamMsg(params) {
+        console.log('message recovering')
+
+        var backupRoot = this.getBackupRoot(params)
+        var messages = []
+
+        await Mam.fetch(backupRoot, 'private', null, trytes => {
+            var data = JSON.parse(iota.utils.fromTrytes(tryte))
+            data.fromSelf = true
+            messages.push(data) /* data wrapped message and other things */
+        })
+
+        var store = this.messageStore.findOnly({id: params.sender})
+        store.messages[params.receiver] = [].concat(messages)
+
+        this.messageStore.update(store)
+    }
+
+    getBackupRoot(params) {
+
+      var store = this.contactStore.findOnly({id: params.sender})
+
+      return store.contacts[params.receiver].backupRoot
+    }
+
 
     async fetchMessages(uuid) {
 
@@ -92,7 +130,8 @@ class mam {
             if (id in messages) {
                 /* sort by timestamp */
                 messages[id] = combineSortedArray(
-                    messages[id], localmsg[id], (i, j) => {
+                    messages[id], localmsg[id],
+                    (i, j) => {
                         return i.timestamp >= j.timestamp
                     }
                 )
@@ -106,18 +145,41 @@ class mam {
     }
 
 
+    async backupMamMsg(packet, params, bkState) {
+        console.log('backupMamMsg')
+
+        var sendPub = await Cert.getBundles(params.receiver, 'I')
+        if (sendPub.length !== 1)
+          console.log('error: Get initial claim failed')
+        sendPub = sendPub[0].message.pk
+
+        var msg = JSON.stringify(packet)
+        var trytes = iota.utils.toTrytes(msg)
+        var message = Mam.create(bkState, trytes)
+
+        this.updateBackupMamState(params, message.state)
+
+        if(debug) {
+            console.log('Root: ', message.root)
+            console.log('Address: ', message.address)
+            console.log('length: ', message.payload.length)
+        }
+
+        var tx = await Mam.attach(message.payload, message.address)
+        console.log('backupMamMsg finished')
+    }
 
     async sendMamMsg(packet, params, mamState) {
         console.log('sendMamMsg')
 
         var recvPub = await Cert.getBundles(params.receiver, 'I')
         if(recvPub.length !== 1)
-            console.log('error: Get Initial Claim failed')
+            console.log('error: Get initial claim failed')
         recvPub = recvPub[0].message.pk
 
         var sendPriv = this.accountStore.findOnly({id: params.sender}).sk
 
-        //  packet.signature = tools.signHash(packet.msg, sendPriv)
+        /* does private mode encrypt messages? */
         //  var msg = tools.encrypt(JSON.stringify(packet), recvPub)
 
 
@@ -181,13 +243,28 @@ class mam {
     getInitMamState(params) {
         console.log('getInitMamState')
 
-        var mamState = Mam.init(iota)
-        mamState = Mam.changeMode(mamState, 'private')
-        var msg = Mam.create(mamState, 'INITIALMESSAGE')
-        var newState = deepCopy(msg.state)
         var store = this.contactStore.findOnly({id: params.sender})
 
-        store.contacts[params.receiver] = {activeMamState: deepCopy(mamState)}
+        /* init mam state */
+        var mamState = Mam.init(iota)
+        mamState = Mam.changeMode(mamState, 'private')
+        /* in order to update next_root */
+        var msg = Mam.create(mamState, 'INITIALMESSAGE')
+        var newState = deepCopy(mamState)
+
+        store.contacts[params.receiver] = {
+          activeMamState: deepCopy(mamState)
+        }
+
+
+        /* init message backup mam state */
+        var bkState = Mam.init(iota)
+        bkState = Mam.changeMode(bkState, 'private')
+        var bkmsg = Mam.create(bkState, 'INITIALMESSAGE')
+
+        store.contacts[params.receiver].backupMamState = deepCopy(bkState)
+        store.contacts[params.receiver].backupRoot = bkState.next_root
+
 
         if(debug)
             console.log('Store updated: ', store)
@@ -220,6 +297,13 @@ class mam {
         this.contactStore.update(store)
     }
 
+    updateBackupMamState(params, bkState) {
+        var store = this.contactStore.findOnly({id: params.sender})
+        store.contacts[params.receiver].backupMamState = deepCopy(bkState)
+
+        this.contactStore.update(store)
+    }
+
     /* temporary workaround */
     async createIdentity(packet) {
         packet = deepCopy(packet)
@@ -243,7 +327,9 @@ class mam {
         var store = this.messageStore.findOnly({id: params.sender})
         packet.fromSelf = true
 
-        store.messages[params.receiver] = []
+        if (!params.receiver in messages) {
+            store.messages[params.receiver] = []
+        }
         store.messages[params.receiver].push(packet)
 
         this.messageStore.update(store)
