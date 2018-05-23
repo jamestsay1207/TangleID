@@ -94,7 +94,7 @@ app.prepare()
 
         server.get('/api/fetchUserList', (req, res) => {
             console.log('fetching user')
-            const list = mam.accountStore.all()
+            const list = mam.accountStore.findAll()
             return res.send(list)
         })
 
