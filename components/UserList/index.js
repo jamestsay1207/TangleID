@@ -50,8 +50,8 @@ class UserList extends React.Component {
 getFullName = claim => `${claim.firstName} ${claim.lastName}`
 listExpand = panelIndex => (event, expanded) => {
   const parent = event.currentTarget.parentElement;
-  let [start] = this.state.bgColor.start;
-  const [end] = this.state.bgColor.end;
+  let start = this.state.bgColor.start;
+  const end = this.state.bgColor.end;
   let operator = 0;
 
   if (start - end < 0) {
