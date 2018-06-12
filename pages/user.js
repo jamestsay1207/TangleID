@@ -23,7 +23,6 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import MessageInput from '../components/MessageInput';
-import Button from '@material-ui/core/Button';
 import SimpleForm from '../components/SimpleForm';
 import ClaimList from '../components/ClaimList';
 import formDataUtils from '../utils/formDataUtils';
@@ -82,6 +81,38 @@ const styles = {
     margin: 30,
     boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .30)',
   },
+  Button_Coler_Pravite: {
+    size: 'small',
+    background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)',
+    borderRadius: 3,
+    border: 0,
+    color: 'white',
+    height: 40,
+    padding: '0 40px',
+    margin: 10,
+    boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .30)',
+    desplay: 'flex',
+    flex: '10%',
+    // 'flex-direction': 'column',
+    // 'justify-content': 'center',
+    'justify-content': 'flex-start',
+    'font-size': '0.6em',
+  },
+  Button_Coler_Public: {
+    size: 'small',
+    background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)',
+    borderRadius: 3,
+    border: 0,
+    color: 'white',
+    height: 40,
+    padding: '0 40px',
+    margin: 10,
+    boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .30)',
+    desplay: 'flex',
+    flex: '10%',
+    'justify-content': 'flex-start',
+    'font-size': '0.6em',
+  },
 };
 
 const UserPage = (props) => {
@@ -128,6 +159,14 @@ const UserPage = (props) => {
               style={styles.qcode}
               src={qrcode}
             />
+          </div>
+          <div style={{display:'flex'}}>
+            <Button variant="contained" style={styles.Button_Coler_Public}>
+             Public Key
+            </Button>
+            <Button variant="contained" style={styles.Button_Coler_Pravite} >
+              Private Key
+            </Button>
           </div>
         </div>
         <div style={styles['right-block']}>
